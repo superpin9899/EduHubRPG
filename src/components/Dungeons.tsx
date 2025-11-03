@@ -87,6 +87,10 @@ export default function Dungeons({ userData, onBack }: DungeonsProps) {
   const [isInCombat, setIsInCombat] = useState(false);
   const [isPlayerTurn, setIsPlayerTurn] = useState(true);
   const [combatLog, setCombatLog] = useState<string[]>([]);
+  const [currentFloor] = useState(1); // TODO: implementar cambio de piso
+  const [enemiesDefeated, setEnemiesDefeated] = useState(0);
+  const [progressLoadedFromDB, setProgressLoadedFromDB] = useState(false);
+  const [savedProgress, setSavedProgress] = useState<any>(null);
   
   // Ref para acceder al valor actual de isPlayerTurn sin closures
   const isPlayerTurnRef = useRef(true);
@@ -103,10 +107,11 @@ export default function Dungeons({ userData, onBack }: DungeonsProps) {
       if (!userData?.id) return;
       
       try {
-        const [statsResponse, itemsResponse, monstersResponse] = await Promise.all([
+        const [statsResponse, itemsResponse, monstersResponse, progressResponse] = await Promise.all([
           fetch(`${API_BASE}/getUserStats?userId=${userData.id}`),
           fetch(`${API_BASE}/getUserItems?userId=${userData.id}`),
-          fetch(`${API_BASE}/getMonsters?variant=normal`)
+          fetch(`${API_BASE}/getMonsters?variant=normal`),
+          fetch(`${API_BASE}/getDungeonProgress?userId=${userData.id}`)
         ]);
         
         if (statsResponse.ok) {
@@ -122,6 +127,26 @@ export default function Dungeons({ userData, onBack }: DungeonsProps) {
         if (monstersResponse.ok) {
           const monstersData = await monstersResponse.json();
           if (monstersData) setMonsters(monstersData);
+        }
+
+        // Cargar progreso guardado de la dungeon
+        if (progressResponse.ok) {
+          const progress = await progressResponse.json();
+          console.log('📥 Progreso cargado:', progress);
+          if (progress && progress.is_active) {
+            // Cargar estado guardado
+            setCurrentHp(progress.current_hp);
+            // TODO: setCurrentFloor(progress.current_floor);
+            // TODO: setEnemiesDefeated(progress.enemies_defeated);
+            setSavedProgress(progress);
+            setProgressLoadedFromDB(true);
+          } else {
+            // Marcar explícitamente que no hay progreso
+            setSavedProgress({});
+          }
+        } else {
+          // Si falla la respuesta, marcar como sin progreso
+          setSavedProgress({});
         }
       } catch (error) {
         console.error('❌ Error cargando datos:', error);
@@ -156,27 +181,58 @@ export default function Dungeons({ userData, onBack }: DungeonsProps) {
     });
   }, [userStats, userItems]);
   
-  // Inicializar HP al máximo cuando totalStats está listo
+  // Inicializar HP al máximo cuando totalStats está listo (solo si NO se cargó desde DB)
   useEffect(() => {
-    if (totalStats.hp > 0 && (currentHp === null || currentHp !== totalStats.hp)) {
+    if (!progressLoadedFromDB && totalStats.hp > 0 && (currentHp === null || currentHp !== totalStats.hp)) {
       setCurrentHp(totalStats.hp);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [totalStats.hp]);
-  
-  const [currentFloor] = useState(1);
+  }, [totalStats.hp, progressLoadedFromDB]);
 
-  // Seleccionar monstruo aleatorio del Piso 1
+  // Seleccionar monstruo o cargar el guardado
   useEffect(() => {
-    const selectRandomMonster = async () => {
+    const selectOrLoadMonster = async () => {
       if (monsters.length === 0 || currentFloor !== 1) return;
       
+      // Esperar a que se complete la carga de datos (incluyendo progreso)
+      // Si savedProgress es null, significa que aún no se ha cargado nada
+      // Si savedProgress es un objeto vacío {}, significa que no hay progreso guardado
+      if (savedProgress === null) {
+        console.log('⏳ Esperando carga de progreso...');
+        return;
+      }
+      
       try {
-        // Seleccionar monstruo aleatorio
-        const randomMonster = monsters[Math.floor(Math.random() * monsters.length)];
-        const monsterLevel = 1; // Nivel base para Piso 1
+        // Si hay progreso guardado con enemigo, cargarlo
+        if (savedProgress && savedProgress.current_enemy) {
+          const savedEnemy = savedProgress.current_enemy;
+          console.log('📥 Cargando enemigo guardado:', savedEnemy);
+          
+          const enemy: Enemy = {
+            id: savedEnemy.id,
+            name: savedEnemy.name,
+            icon: savedEnemy.icon,
+            maxHp: savedEnemy.maxHp,
+            currentHp: savedEnemy.currentHp,
+            level: savedEnemy.level,
+            attack: savedEnemy.attack,
+            defense: savedEnemy.defense,
+            speed: savedEnemy.speed,
+            wisdom: savedEnemy.wisdom,
+            crit_chance: savedEnemy.crit_chance,
+            description: savedEnemy.description,
+            code: savedEnemy.code
+          };
+          
+          setCurrentEnemy(enemy);
+          return;
+        }
         
-        // Calcular stats del monstruo con la función de la DB
+        // Si no hay progreso guardado, generar monstruo aleatorio
+        console.log('🎲 Generando monstruo aleatorio (sin progreso guardado)');
+        const randomMonster = monsters[Math.floor(Math.random() * monsters.length)];
+        const monsterLevel = 1;
+        
         const statsResponse = await fetch(
           `${API_BASE}/getMonsterStats?monsterCode=${randomMonster.code}&level=${monsterLevel}&floor=${currentFloor}`
         );
@@ -207,8 +263,8 @@ export default function Dungeons({ userData, onBack }: DungeonsProps) {
       }
     };
 
-    selectRandomMonster();
-  }, [monsters, currentFloor, API_BASE]);
+    selectOrLoadMonster();
+  }, [monsters, currentFloor, API_BASE, savedProgress]);
 
   const [selectedEnemy, setSelectedEnemy] = useState<Enemy | null>(null);
 
@@ -224,6 +280,37 @@ export default function Dungeons({ userData, onBack }: DungeonsProps) {
   const getHpPercentage = (current: number, max: number) => {
     return Math.max(0, (current / max) * 100);
   };
+
+  // Guardar progreso automáticamente cuando cambia
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      if (!userData?.id || currentHp === null) return;
+      
+      try {
+        const progressData = {
+          userId: userData.id,
+          currentFloor,
+          currentHp,
+          enemiesDefeated,
+          totalExpEarned: 0, // TODO: implementar EXP ganada
+          itemsFound: [], // TODO: implementar items encontrados
+          currentEnemy: currentEnemy || null
+        };
+        
+        await fetch(`${API_BASE}/updateDungeonProgress`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(progressData)
+        });
+        
+        console.log('💾 Progreso guardado');
+      } catch (error) {
+        console.error('❌ Error guardando progreso:', error);
+      }
+    }, 2000); // Esperar 2 segundos después del último cambio
+    
+    return () => clearTimeout(timer);
+  }, [currentHp, currentEnemy, currentFloor, enemiesDefeated, userData?.id, API_BASE]);
 
   // Iniciar combate cuando se selecciona un enemigo
   const handleStartCombat = () => {
@@ -284,6 +371,7 @@ export default function Dungeons({ userData, onBack }: DungeonsProps) {
     
     // Si el enemigo muere, victoria
     if (newEnemyHp === 0) {
+      console.log('🎯 Enemigo derrotado! Llamando handleVictory');
       handleVictory();
       return;
     }
@@ -335,10 +423,12 @@ export default function Dungeons({ userData, onBack }: DungeonsProps) {
 
   // Victoria
   const handleVictory = () => {
+    console.log('🎉 HANDLE VICTORY EJECUTANDO');
     const expGained = (currentEnemy?.level || 1) * 10;
     setCombatLog(prev => [...prev, 
       `🎉 ¡Victoria! Ganas ${expGained} EXP`
     ]);
+    setEnemiesDefeated(prev => prev + 1);
     isInCombatRef.current = false;
     isPlayerTurnRef.current = true;
     setIsInCombat(false);

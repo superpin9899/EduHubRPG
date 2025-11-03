@@ -65,6 +65,8 @@ export default function Inventory({ userData, onBack }: InventoryProps) {
   const [hoveredItem, setHoveredItem] = useState<UserItem | null>(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [showDungeons, setShowDungeons] = useState(false);
+  const [showDungeonPopup, setShowDungeonPopup] = useState(false);
+  const [existingProgress, setExistingProgress] = useState<any>(null);
   
   // Calcular posición del modal evitando salirse de la pantalla
   const getTooltipPosition = () => {
@@ -101,6 +103,29 @@ export default function Inventory({ userData, onBack }: InventoryProps) {
     loadUserItems();
     loadUserStats();
   }, []);
+
+  // Función para manejar clic en "Combatir"
+  const handleCombatClick = async () => {
+    // Cargar progreso existente
+    try {
+      const response = await fetch(`${API_BASE}/getDungeonProgress?userId=${userData.id}`);
+      if (response.ok) {
+        const progress = await response.json();
+        console.log('📥 Progreso encontrado:', progress);
+        setExistingProgress(progress);
+        setShowDungeonPopup(true);
+      } else {
+        // Si no hay progreso, mostrar popup sin progreso
+        setExistingProgress(null);
+        setShowDungeonPopup(true);
+      }
+    } catch (error) {
+      console.error('❌ Error cargando progreso:', error);
+      // Si hay error, mostrar popup sin progreso
+      setExistingProgress(null);
+      setShowDungeonPopup(true);
+    }
+  };
 
   // Escuchar movimientos del mouse globalmente
   useEffect(() => {
@@ -453,7 +478,7 @@ export default function Inventory({ userData, onBack }: InventoryProps) {
             alignItems: 'center'
           }}>
             <button
-              onClick={() => setShowDungeons(true)}
+              onClick={handleCombatClick}
               className="nes-btn is-primary"
               style={{
                 fontSize: '14px',
@@ -902,6 +927,128 @@ export default function Inventory({ userData, onBack }: InventoryProps) {
         </div>
         );
       })()}
+
+      {/* Popup de selección de dungeon */}
+      {showDungeonPopup && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          backgroundColor: 'rgba(0, 0, 0, 0.75)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            border: '4px solid #5d0008',
+            borderRadius: '12px',
+            padding: '40px',
+            maxWidth: '500px',
+            width: '90%',
+            textAlign: 'center',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.3)'
+          }}>
+            <h2 style={{
+              fontSize: '18px',
+              color: '#5d0008',
+              marginBottom: '20px',
+              textShadow: '2px 2px 0px rgba(0,0,0,0.1)'
+            }}>
+              ⚔️ DUNGEON
+            </h2>
+            
+            <p style={{
+              fontSize: '12px',
+              color: '#333',
+              marginBottom: '30px',
+              lineHeight: '1.8'
+            }}>
+              {existingProgress && existingProgress.is_active && existingProgress.current_hp > 0
+                ? `Tienes una partida en progreso en el Piso ${existingProgress.current_floor}`
+                : existingProgress && existingProgress.current_hp <= 0
+                ? 'Tu última partida terminó con HP 0. Debes empezar una nueva aventura.'
+                : '¡Inicia una nueva aventura en las mazmorras!'}
+            </p>
+
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '15px'
+            }}>
+              <button
+                onClick={async () => {
+                  // Continuar partida existente
+                  setExistingProgress(null);
+                  setShowDungeonPopup(false);
+                  setShowDungeons(true);
+                }}
+                disabled={!existingProgress || !existingProgress.is_active || existingProgress.current_hp <= 0}
+                className="nes-btn is-success"
+                style={{
+                  fontSize: '12px',
+                  padding: '12px 24px',
+                  fontWeight: 'bold',
+                  textTransform: 'uppercase',
+                  letterSpacing: '1px',
+                  opacity: (!existingProgress || !existingProgress.is_active || existingProgress.current_hp <= 0) ? 0.5 : 1,
+                  cursor: (!existingProgress || !existingProgress.is_active || existingProgress.current_hp <= 0) ? 'not-allowed' : 'pointer'
+                }}
+              >
+                ▶️ Continuar Partida
+              </button>
+
+              <button
+                onClick={async () => {
+                  // Resetear progreso y empezar nueva
+                  try {
+                    await fetch(`${API_BASE}/resetDungeonProgress?userId=${userData.id}`, {
+                      method: 'DELETE'
+                    });
+                    console.log('🗑️ Progreso reseteado');
+                  } catch (error) {
+                    console.error('❌ Error reseteando progreso:', error);
+                  }
+                  setExistingProgress(null);
+                  setShowDungeonPopup(false);
+                  setShowDungeons(true);
+                }}
+                className="nes-btn is-warning"
+                style={{
+                  fontSize: '12px',
+                  padding: '12px 24px',
+                  fontWeight: 'bold',
+                  textTransform: 'uppercase',
+                  letterSpacing: '1px'
+                }}
+              >
+                🆕 Nueva Aventura
+              </button>
+
+              <button
+                onClick={() => {
+                  setExistingProgress(null);
+                  setShowDungeonPopup(false);
+                }}
+                className="nes-btn"
+                style={{
+                  fontSize: '12px',
+                  padding: '12px 24px',
+                  fontWeight: 'bold',
+                  textTransform: 'uppercase',
+                  letterSpacing: '1px',
+                  backgroundColor: '#999'
+                }}
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
