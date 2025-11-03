@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import 'nes.css/css/nes.min.css';
 
 interface Monster {
@@ -34,6 +34,9 @@ interface Enemy {
   level: number;
   attack: number;
   defense: number;
+  speed: number;
+  wisdom: number;
+  crit_chance: number;
   description: string;
   code: string;
 }
@@ -81,6 +84,12 @@ export default function Dungeons({ userData, onBack }: DungeonsProps) {
   const [currentHp, setCurrentHp] = useState<number | null>(null);
   const [monsters, setMonsters] = useState<Monster[]>([]);
   const [currentEnemy, setCurrentEnemy] = useState<Enemy | null>(null);
+  const [isInCombat, setIsInCombat] = useState(false);
+  const [isPlayerTurn, setIsPlayerTurn] = useState(true);
+  const [combatLog, setCombatLog] = useState<string[]>([]);
+  
+  // Ref para acceder al valor actual de isPlayerTurn sin closures
+  const isPlayerTurnRef = useRef(true);
   
   // URLs de funciones serverless
   const API_BASE = import.meta.env.VITE_NETLIFY_SITE_URL 
@@ -183,6 +192,9 @@ export default function Dungeons({ userData, onBack }: DungeonsProps) {
             level: monsterLevel,
             attack: calculatedStats.attack,
             defense: calculatedStats.defense,
+            speed: calculatedStats.speed,
+            wisdom: calculatedStats.wisdom,
+            crit_chance: calculatedStats.crit_chance,
             description: randomMonster.description,
             code: randomMonster.code
           };
@@ -199,8 +211,139 @@ export default function Dungeons({ userData, onBack }: DungeonsProps) {
 
   const [selectedEnemy, setSelectedEnemy] = useState<Enemy | null>(null);
 
+  // Sincronizar ref con state
+  useEffect(() => {
+    isPlayerTurnRef.current = isPlayerTurn;
+  }, [isPlayerTurn]);
+
   const getHpPercentage = (current: number, max: number) => {
     return Math.max(0, (current / max) * 100);
+  };
+
+  // Iniciar combate cuando se selecciona un enemigo
+  const handleStartCombat = () => {
+    if (!currentEnemy || isInCombat) return;
+    
+    console.log('🟡 handleStartCombat INICIANDO');
+    setIsInCombat(true);
+    setCombatLog([`⚔️ ¡Combate iniciado contra ${currentEnemy.name}!`]);
+    
+    // Determinar quien ataca primero por SPEED
+    const playerSpeed = totalStats.speed;
+    const enemySpeed = currentEnemy.speed;
+    console.log('⚡ Speed check', { playerSpeed, enemySpeed });
+    
+    if (playerSpeed > enemySpeed) {
+      console.log('✅ Jugador ataca primero');
+      isPlayerTurnRef.current = true;
+      setIsPlayerTurn(true);
+    } else if (playerSpeed < enemySpeed) {
+      console.log('✅ Enemigo ataca primero, programando timeout');
+      isPlayerTurnRef.current = false;
+      setIsPlayerTurn(false);
+      // Si el enemigo ataca primero, ejecutar su ataque
+      setTimeout(() => handleEnemyAttack(), 500);
+    } else {
+      // Empate: random 50/50
+      const goesFirst = Math.random() > 0.5;
+      console.log('⚖️ Empate, random:', goesFirst ? 'Jugador' : 'Enemigo');
+      isPlayerTurnRef.current = goesFirst;
+      setIsPlayerTurn(goesFirst);
+      if (!goesFirst) {
+        setTimeout(() => handleEnemyAttack(), 500);
+      }
+    }
+  };
+
+  // Ataque del jugador
+  const handlePlayerAttack = () => {
+    if (!isPlayerTurn || !currentEnemy || !isInCombat) return;
+    
+    // Calcular daño base
+    const baseDamage = Math.max(1, totalStats.attack - currentEnemy.defense);
+    
+    // Calcular crítico
+    const isCrit = Math.random() * 100 < totalStats.crit_chance;
+    const finalDamage = isCrit ? baseDamage * 2 : baseDamage;
+    
+    // Actualizar HP del enemigo
+    const newEnemyHp = Math.max(0, currentEnemy.currentHp - finalDamage);
+    setCurrentEnemy({ ...currentEnemy, currentHp: newEnemyHp });
+    
+    // Log
+    const critText = isCrit ? ' ¡CRÍTICO!' : '';
+    setCombatLog(prev => [...prev, 
+      `Atacas a ${currentEnemy.name} por ${finalDamage} HP${critText}`
+    ]);
+    
+    // Si el enemigo muere, victoria
+    if (newEnemyHp === 0) {
+      handleVictory();
+      return;
+    }
+    
+    // Pasar turno al enemigo
+    isPlayerTurnRef.current = false;
+    setIsPlayerTurn(false);
+    // Usar un callback que NO dependa de isPlayerTurn del closure
+    setTimeout(() => {
+      handleEnemyAttack();
+    }, 1000);
+  };
+
+  // Ataque del enemigo
+  const handleEnemyAttack = () => {
+    console.log('🔴 handleEnemyAttack llamado', { isPlayerTurnRef: isPlayerTurnRef.current, hasEnemy: !!currentEnemy, isInCombat });
+    if (!currentEnemy || !isInCombat) {
+      console.log('🔴 handleEnemyAttack ABORTADO - sin enemigo o combate');
+      return;
+    }
+    
+    console.log('🟢 handleEnemyAttack EJECUTANDO');
+    // Calcular daño base recibido
+    const baseDamage = Math.max(1, currentEnemy.attack - totalStats.defense);
+    
+    // Aplicar reducción por WISDOM
+    const wisdomReduction = 1 - (totalStats.wisdom / 100);
+    const finalDamage = Math.max(1, Math.floor(baseDamage * wisdomReduction));
+    
+    // Actualizar HP del jugador
+    const newPlayerHp = Math.max(0, (currentHp || 0) - finalDamage);
+    setCurrentHp(newPlayerHp);
+    
+    // Log
+    setCombatLog(prev => [...prev, 
+      `${currentEnemy.name} te ataca por ${finalDamage} HP`
+    ]);
+    
+    // Si el jugador muere, game over
+    if (newPlayerHp === 0) {
+      handleGameOver();
+      return;
+    }
+    
+    // Devolver turno al jugador
+    isPlayerTurnRef.current = true;
+    setIsPlayerTurn(true);
+  };
+
+  // Victoria
+  const handleVictory = () => {
+    const expGained = (currentEnemy?.level || 1) * 10;
+    setCombatLog(prev => [...prev, 
+      `🎉 ¡Victoria! Ganas ${expGained} EXP`
+    ]);
+    setIsInCombat(false);
+    setIsPlayerTurn(true);
+    // TODO: Generar nuevo monstruo o avanzar piso
+  };
+
+  // Game Over
+  const handleGameOver = () => {
+    setCombatLog(prev => [...prev, '💀 GAME OVER - Has sido derrotado']);
+    setIsInCombat(false);
+    setIsPlayerTurn(true);
+    // TODO: Resetear HP y volver al inicio o mostrar pantalla de game over
   };
 
   return (
@@ -493,6 +636,31 @@ export default function Dungeons({ userData, onBack }: DungeonsProps) {
               </div>
             )}
 
+            {/* Botón de Atacar */}
+            {currentEnemy && (
+              <div style={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                marginBottom: '0px'
+              }}>
+                <button
+                  onClick={isInCombat ? handlePlayerAttack : handleStartCombat}
+                  disabled={isInCombat && !isPlayerTurn}
+                  className="nes-btn is-primary"
+                  style={{
+                    fontSize: '14px',
+                    padding: '12px 24px',
+                    fontWeight: 'bold',
+                    textTransform: 'uppercase',
+                    letterSpacing: '1px'
+                  }}
+                >
+                  {isInCombat ? (isPlayerTurn ? '⚔️ Atacar' : '⏳ Turno del Enemigo...') : '⚔️ Iniciar Combate'}
+                </button>
+              </div>
+            )}
+
             {/* INFO - Panel inferior derecho */}
             <div style={{
               background: 'rgba(255, 255, 255, 0.05)',
@@ -556,6 +724,18 @@ export default function Dungeons({ userData, onBack }: DungeonsProps) {
                         <span style={{ color: '#ff6b6b' }}>HP:</span>
                         <span style={{ color: '#fff', fontWeight: 'bold' }}>{selectedEnemy.maxHp}</span>
                       </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ color: '#feca57' }}>SPD:</span>
+                        <span style={{ color: '#fff', fontWeight: 'bold' }}>{selectedEnemy.speed}</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ color: '#a29bfe' }}>WIS:</span>
+                        <span style={{ color: '#fff', fontWeight: 'bold' }}>{selectedEnemy.wisdom}</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ color: '#fd79a8' }}>CRT:</span>
+                        <span style={{ color: '#fff', fontWeight: 'bold' }}>{selectedEnemy.crit_chance}%</span>
+                      </div>
                     </div>
                   </div>
 
@@ -585,6 +765,38 @@ export default function Dungeons({ userData, onBack }: DungeonsProps) {
                 </div>
               )}
             </div>
+
+            {/* Log de combate - Panel adicional debajo del INFO */}
+            {isInCombat && combatLog.length > 0 && (
+              <div style={{
+                background: 'rgba(0, 0, 0, 0.3)',
+                border: '2px solid #5d0008',
+                borderRadius: '8px',
+                padding: '15px',
+                maxHeight: '150px',
+                overflowY: 'auto'
+              }}>
+                <div style={{
+                  fontSize: '10px',
+                  color: '#fff',
+                  marginBottom: '10px',
+                  textAlign: 'center'
+                }}>
+                  LOG DE COMBATE
+                </div>
+                <div style={{
+                  fontSize: '8px',
+                  color: '#eee',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '4px'
+                }}>
+                  {combatLog.map((log, idx) => (
+                    <div key={idx}>{log}</div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

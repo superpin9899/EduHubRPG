@@ -175,7 +175,7 @@ function Band({ maxSpeed = 50, minSpeed = 0, cardType = 'courses', onRelease }: 
       new THREE.CatmullRomCurve3([new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()])
   );
   const [dragged, drag] = useState<any>(false);
-  const [hovered, hover] = useState(false);
+  const [, hover] = useState(false);
   const [isSmall, setIsSmall] = useState(() => typeof window !== 'undefined' && window.innerWidth < 1024);
   const prevDragged = useRef<any>(false);
   const [showWarning, setShowWarning] = useState(false);
