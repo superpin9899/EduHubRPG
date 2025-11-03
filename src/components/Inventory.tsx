@@ -18,6 +18,7 @@ import studentBoots from './student_boots.png';
 import studentRing from './student_ring.png';
 import studentBook from './student_book.png';
 import shyningCape from './shyning_cape.png';
+import Dungeons from './Dungeons';
 
 interface InventoryProps {
   userData: any;
@@ -63,6 +64,7 @@ export default function Inventory({ userData, onBack }: InventoryProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [hoveredItem, setHoveredItem] = useState<UserItem | null>(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [showDungeons, setShowDungeons] = useState(false);
   
   // Calcular posición del modal evitando salirse de la pantalla
   const getTooltipPosition = () => {
@@ -358,6 +360,11 @@ export default function Inventory({ userData, onBack }: InventoryProps) {
      );
    };
 
+  // Si showDungeons es true, mostrar componente Dungeons
+  if (showDungeons) {
+    return <Dungeons userData={userData} onBack={() => setShowDungeons(false)} />;
+  }
+
   return (
     <>
       <style>{`
@@ -425,7 +432,7 @@ export default function Inventory({ userData, onBack }: InventoryProps) {
       }}>
         {/* Header */}
         <div style={{
-          background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+          background: 'linear-gradient(135deg, #5d0008 0%, #70000a 100%)',
           padding: '20px',
           borderBottom: '4px solid #333',
           display: 'flex',
@@ -440,16 +447,35 @@ export default function Inventory({ userData, onBack }: InventoryProps) {
           }}>
             INVENTARIO
           </div>
-          <button
-            onClick={onBack}
-            className="nes-btn is-error"
-            style={{
-              fontSize: '14px',
-              padding: '8px 16px'
-            }}
-          >
-            ← Volver
-          </button>
+          <div style={{
+            display: 'flex',
+            gap: '12px',
+            alignItems: 'center'
+          }}>
+            <button
+              onClick={() => setShowDungeons(true)}
+              className="nes-btn is-primary"
+              style={{
+                fontSize: '14px',
+                padding: '8px 16px',
+                fontWeight: 'bold',
+                textTransform: 'uppercase',
+                letterSpacing: '1px'
+              }}
+            >
+              ⚔️ Combatir
+            </button>
+            <button
+              onClick={onBack}
+              className="nes-btn is-error"
+              style={{
+                fontSize: '14px',
+                padding: '8px 16px'
+              }}
+            >
+              ← Volver
+            </button>
+          </div>
         </div>
 
         {/* Contenido */}
@@ -535,27 +561,27 @@ export default function Inventory({ userData, onBack }: InventoryProps) {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', lineHeight: '2' }}>
                       <span>⚔️ ATK:</span>
-                      <span style={{ fontWeight: 'bold', color: '#2563eb' }}>{totalStats.attack}</span>
+                      <span style={{ fontWeight: 'bold', color: '#5d0008' }}>{totalStats.attack}</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', lineHeight: '2' }}>
                       <span>🛡️ DEF:</span>
-                      <span style={{ fontWeight: 'bold', color: '#2563eb' }}>{totalStats.defense}</span>
+                      <span style={{ fontWeight: 'bold', color: '#5d0008' }}>{totalStats.defense}</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', lineHeight: '2' }}>
                       <span>❤️ HP:</span>
-                      <span style={{ fontWeight: 'bold', color: '#2563eb' }}>{totalStats.hp}</span>
+                      <span style={{ fontWeight: 'bold', color: '#5d0008' }}>{totalStats.hp}</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', lineHeight: '2' }}>
                       <span>⚡ SPD:</span>
-                      <span style={{ fontWeight: 'bold', color: '#2563eb' }}>{totalStats.speed}</span>
+                      <span style={{ fontWeight: 'bold', color: '#5d0008' }}>{totalStats.speed}</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', lineHeight: '2' }}>
                       <span>🧠 WIS:</span>
-                      <span style={{ fontWeight: 'bold', color: '#2563eb' }}>{totalStats.wisdom}</span>
+                      <span style={{ fontWeight: 'bold', color: '#5d0008' }}>{totalStats.wisdom}</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', lineHeight: '2' }}>
                       <span>💥 CRT:</span>
-                      <span style={{ fontWeight: 'bold', color: '#2563eb' }}>{totalStats.crit_chance}%</span>
+                      <span style={{ fontWeight: 'bold', color: '#5d0008' }}>{totalStats.crit_chance}%</span>
                     </div>
                   </div>
                 </div>
@@ -717,7 +743,7 @@ export default function Inventory({ userData, onBack }: InventoryProps) {
                   disabled={currentPage === 1}
                   style={{
                     fontSize: '24px',
-                    background: currentPage === 1 ? '#ccc' : '#2563eb',
+                    background: currentPage === 1 ? '#ccc' : '#5d0008',
                     color: 'white',
                     border: '3px solid #333',
                     padding: '8px 16px',
@@ -741,7 +767,7 @@ export default function Inventory({ userData, onBack }: InventoryProps) {
                   disabled={currentPage === 10}
                   style={{
                     fontSize: '24px',
-                    background: currentPage === 10 ? '#ccc' : '#2563eb',
+                    background: currentPage === 10 ? '#ccc' : '#5d0008',
                     color: 'white',
                     border: '3px solid #333',
                     padding: '8px 16px',

@@ -24,7 +24,7 @@ export default function GamificationCard({ onAccessClick }: GamificationCardProp
             }}
           >
             <Sparkles 
-              className="text-[#2563eb] opacity-20" 
+              className="text-[#5d0008] opacity-20" 
               size={12 + Math.random() * 12}
             />
           </div>
@@ -34,6 +34,7 @@ export default function GamificationCard({ onAccessClick }: GamificationCardProp
       {/* Card principal */}
       <div
         className="relative max-w-2xl w-full mx-4 transform transition-all duration-500"
+        data-tour="gamification"
         style={{
           transform: isHovered ? 'translateY(-10px) scale(1.02)' : 'translateY(0) scale(1)',
         }}
@@ -54,7 +55,7 @@ export default function GamificationCard({ onAccessClick }: GamificationCardProp
         <div
           className="absolute inset-0 rounded-2xl overflow-hidden"
           style={{
-            background: 'linear-gradient(45deg, #2563eb, transparent, #2563eb)',
+            background: 'linear-gradient(45deg, #5d0008, transparent, #5d0008)',
             backgroundSize: '200% 200%',
             animation: 'gradientFlow 3s ease infinite',
             padding: '2px',
@@ -84,7 +85,7 @@ export default function GamificationCard({ onAccessClick }: GamificationCardProp
               <div
                 className="absolute inset-0 rounded-full blur-xl"
                 style={{
-                  background: '#2563eb',
+                  background: '#5d0008',
                   opacity: isHovered ? 0.4 : 0.2,
                   animation: 'pulse 2s ease-in-out infinite',
                 }}
@@ -92,20 +93,20 @@ export default function GamificationCard({ onAccessClick }: GamificationCardProp
               <Trophy
                 size={64}
                 className="relative z-10"
-                style={{ color: '#2563eb' }}
+                style={{ color: '#5d0008' }}
                 strokeWidth={1.5}
               />
             </div>
 
             <h2
               className="text-3xl md:text-4xl font-bold text-center mb-2 tracking-tight"
-              style={{ color: '#2563eb' }}
+              style={{ color: '#5d0008' }}
             >
               ¿LISTO PARA SUBIR
             </h2>
             <h2
               className="text-3xl md:text-4xl font-bold text-center mb-4 tracking-tight"
-              style={{ color: '#2563eb' }}
+              style={{ color: '#5d0008' }}
             >
               DE NIVEL?
             </h2>
@@ -113,9 +114,9 @@ export default function GamificationCard({ onAccessClick }: GamificationCardProp
 
           {/* Descripción */}
           <p className="text-center text-gray-700 text-lg mb-8 leading-relaxed max-w-xl mx-auto">
-            Consulta tu <strong style={{ color: '#2563eb' }}>experiencia acumulada</strong>,{' '}
-            <strong style={{ color: '#2563eb' }}>logros desbloqueados</strong> y posición global en el{' '}
-            <strong style={{ color: '#2563eb' }}>ranking de estudiantes</strong>
+            Consulta tu <strong style={{ color: '#5d0008' }}>experiencia acumulada</strong>,{' '}
+            <strong style={{ color: '#5d0008' }}>logros desbloqueados</strong> y posición global en el{' '}
+            <strong style={{ color: '#5d0008' }}>ranking de estudiantes</strong>
           </p>
 
           {/* Features mini cards */}
@@ -137,10 +138,10 @@ export default function GamificationCard({ onAccessClick }: GamificationCardProp
               >
                 <feature.icon
                   size={24}
-                  style={{ color: '#2563eb' }}
+                  style={{ color: '#5d0008' }}
                   className="mb-2"
                 />
-                <span className="text-sm font-medium" style={{ color: '#2563eb' }}>
+                <span className="text-sm font-medium" style={{ color: '#5d0008' }}>
                   {feature.text}
                 </span>
               </div>
@@ -153,8 +154,8 @@ export default function GamificationCard({ onAccessClick }: GamificationCardProp
             className="w-full py-4 rounded-xl font-bold text-lg tracking-wide transition-all duration-300 relative overflow-hidden group"
             style={{
               background: isHovered 
-                ? 'linear-gradient(135deg, #1e40af 0%, #2563eb 100%)' 
-                : '#2563eb',
+                ? 'linear-gradient(135deg, #3a0005 0%, #5d0008 100%)' 
+                : '#5d0008',
               color: 'white',
               boxShadow: isHovered 
                 ? '0 10px 30px -5px rgba(93, 0, 8, 0.6)' 

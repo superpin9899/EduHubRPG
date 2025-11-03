@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { X } from 'lucide-react'
+import { X, ArrowDown, MousePointer2 } from 'lucide-react'
 import Lanyard from './components/Lanyard'
 import Particles from './components/Particles'
 import CoursesList from './CoursesList'
@@ -9,6 +9,7 @@ import SupportSection from './SupportSection'
 import GamificationCard from './components/GamificationCard'
 import GamificationLogin from './components/GamificationLogin'
 import GamificationDashboard from './components/GamificationDashboard'
+import TourGuide from './components/TourGuide'
 
 type Section = 'menu' | 'courses' | 'howto' | 'support' | 'gamification' | 'dashboard'
 
@@ -27,6 +28,15 @@ function App() {
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null)
   const [showCourseForm, setShowCourseForm] = useState(false)
   const [userData, setUserData] = useState<any>(null)
+  const [showTour, setShowTour] = useState(false)
+
+  // Verificar si el tour ya fue completado
+  useEffect(() => {
+    const tourCompleted = localStorage.getItem('tour_completed')
+    if (!tourCompleted) {
+      setShowTour(true)
+    }
+  }, [])
 
   const handleBackToMenu = () => {
     setCurrentSection('menu')
@@ -69,7 +79,7 @@ function App() {
           particleSpread={10}
           speed={0.15}
           particleBaseSize={150}
-          moveParticlesOnHover={true}
+          moveParticlesOnHover={false}
           particleHoverFactor={2.5}
           alphaParticles={false}
           disableRotation={false}
@@ -93,7 +103,29 @@ function App() {
                 boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)'
               }}
             >
-              {/* Banner limpio sin pista */}
+              {/* Logo de la Fundación */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                <img 
+                  src="https://fundacionsanezequiel.org/wp-content/uploads/2025/03/SanEzequielMoreno_Logotipo-scaled.png" 
+                  alt="Fundación San Ezequiel Moreno"
+                  style={{ height: '60px', width: 'auto' }}
+                />
+                {/* Hint interactivo */}
+                <div style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '8px',
+                  color: '#5d0008',
+                  opacity: 0.7,
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  animation: 'pulseHint 2s ease-in-out infinite'
+                }}>
+                  <MousePointer2 size={20} />
+                  <ArrowDown size={16} />
+                  <span>Arrastra una tarjeta</span>
+                </div>
+              </div>
             </div>
 
             {/* Lanyards únicamente - 100% ancho de pantalla */}
@@ -205,7 +237,7 @@ function App() {
             {/* Botón volver */}
             <button
               onClick={handleBackToMenu}
-              className="flex items-center gap-2 mb-6 px-6 py-3 rounded-xl bg-gradient-to-r from-[#2563eb] to-[#1d4ed8] text-white hover:shadow-xl transition-all duration-300 transform hover:scale-105 hover:-translate-y-1"
+              className="flex items-center gap-2 mb-6 px-6 py-3 rounded-xl bg-gradient-to-r from-[#5d0008] to-[#70000a] text-white hover:shadow-xl transition-all duration-300 transform hover:scale-105 hover:-translate-y-1"
             >
               <X className="w-5 h-5" />
               <span className="font-semibold">Volver al Menú</span>
@@ -232,7 +264,7 @@ function App() {
             {/* Botón volver */}
             <button
               onClick={handleBackToMenu}
-              className="flex items-center gap-2 mb-6 px-6 py-3 rounded-xl bg-gradient-to-r from-[#2563eb] to-[#1d4ed8] text-white hover:shadow-xl transition-all duration-300 transform hover:scale-105 hover:-translate-y-1"
+              className="flex items-center gap-2 mb-6 px-6 py-3 rounded-xl bg-gradient-to-r from-[#5d0008] to-[#70000a] text-white hover:shadow-xl transition-all duration-300 transform hover:scale-105 hover:-translate-y-1"
             >
               <X className="w-5 h-5" />
               <span className="font-semibold">Volver al Menú</span>
@@ -248,7 +280,7 @@ function App() {
             {/* Botón volver */}
             <button
               onClick={handleBackToMenu}
-              className="flex items-center gap-2 mb-6 px-6 py-3 rounded-xl bg-gradient-to-r from-[#2563eb] to-[#1d4ed8] text-white hover:shadow-xl transition-all duration-300 transform hover:scale-105 hover:-translate-y-1"
+              className="flex items-center gap-2 mb-6 px-6 py-3 rounded-xl bg-gradient-to-r from-[#5d0008] to-[#70000a] text-white hover:shadow-xl transition-all duration-300 transform hover:scale-105 hover:-translate-y-1"
             >
               <X className="w-5 h-5" />
               <span className="font-semibold">Volver al Menú</span>
@@ -264,7 +296,7 @@ function App() {
             {/* Botón volver */}
             <button
               onClick={handleBackToMenu}
-              className="flex items-center gap-2 mb-6 px-6 py-3 rounded-xl bg-gradient-to-r from-[#2563eb] to-[#1d4ed8] text-white hover:shadow-xl transition-all duration-300 transform hover:scale-105 hover:-translate-y-1"
+              className="flex items-center gap-2 mb-6 px-6 py-3 rounded-xl bg-gradient-to-r from-[#5d0008] to-[#70000a] text-white hover:shadow-xl transition-all duration-300 transform hover:scale-105 hover:-translate-y-1"
             >
               <X className="w-5 h-5" />
               <span className="font-semibold">Volver al Menú</span>
@@ -286,7 +318,7 @@ function App() {
             {/* Botón volver */}
             <button
               onClick={handleBackToMenu}
-              className="flex items-center gap-2 mb-6 px-6 py-3 rounded-xl bg-gradient-to-r from-[#2563eb] to-[#1d4ed8] text-white hover:shadow-xl transition-all duration-300 transform hover:scale-105 hover:-translate-y-1"
+              className="flex items-center gap-2 mb-6 px-6 py-3 rounded-xl bg-gradient-to-r from-[#5d0008] to-[#70000a] text-white hover:shadow-xl transition-all duration-300 transform hover:scale-105 hover:-translate-y-1"
             >
               <X className="w-5 h-5" />
               <span className="font-semibold">Volver al Menú</span>
@@ -297,6 +329,11 @@ function App() {
           </div>
         )}
       </main>
+
+      {/* Tour guiado */}
+      {showTour && currentSection === 'menu' && (
+        <TourGuide />
+      )}
     </div>
   )
 }

@@ -9,7 +9,7 @@ const SupportSection = () => {
       title: 'Problemas Técnicos',
       description: 'Errores de plataforma, acceso, carga de contenidos',
       icon: AlertCircle,
-      email: 'support@eduhubrpg.com',
+      email: 'sistemas@fundacionsanezequiel.org',
       color: 'from-red-500 to-red-700',
       bgColor: 'bg-red-50',
       borderColor: 'border-red-500'
@@ -66,7 +66,7 @@ const SupportSection = () => {
     <div className="max-w-7xl mx-auto">
       {/* Título */}
       <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold text-[#2563eb] mb-4">
+        <h1 className="text-4xl font-bold text-[#5d0008] mb-4">
           Centro de Soporte
         </h1>
         <p className="text-xl text-gray-600">
@@ -110,7 +110,7 @@ const SupportSection = () => {
                     {option.email.includes('@') ? (
                       <a
                         href={`mailto:${option.email}`}
-                        className="text-[#2563eb] hover:text-[#1d4ed8] underline transition-colors"
+                        className="text-[#5d0008] hover:text-[#70000a] underline transition-colors"
                       >
                         {option.email}
                       </a>
@@ -134,8 +134,8 @@ const SupportSection = () => {
       {/* FAQs */}
       <div className="bg-white rounded-3xl shadow-xl p-8 md:p-12">
         <div className="flex items-center justify-center gap-3 mb-8">
-          <HelpCircle className="w-8 h-8 text-[#2563eb]" />
-          <h2 className="text-3xl font-bold text-[#2563eb]">
+          <HelpCircle className="w-8 h-8 text-[#5d0008]" />
+          <h2 className="text-3xl font-bold text-[#5d0008]">
             Preguntas Frecuentes
           </h2>
         </div>
@@ -149,7 +149,7 @@ const SupportSection = () => {
               <div
                 key={index}
                 className={`card-drop border-2 rounded-xl overflow-hidden transition-all duration-300 ${
-                  isOpen ? 'border-[#2563eb] shadow-lg' : 'border-gray-200 hover:border-gray-300'
+                  isOpen ? 'border-[#5d0008] shadow-lg' : 'border-gray-200 hover:border-gray-300'
                 }`}
                 style={{ animationDelay: `${(supportOptions.length + index) * 50}ms` }}
               >
@@ -160,12 +160,12 @@ const SupportSection = () => {
                 >
                   <div className="flex items-center gap-4 flex-1">
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
-                      isOpen ? 'bg-[#2563eb]' : 'bg-gray-200'
+                      isOpen ? 'bg-[#5d0008]' : 'bg-gray-200'
                     }`}>
                       <Icon className={`w-5 h-5 ${isOpen ? 'text-white' : 'text-gray-600'}`} />
                     </div>
                     <h3 className={`font-semibold text-lg ${
-                      isOpen ? 'text-[#2563eb]' : 'text-gray-800'
+                      isOpen ? 'text-[#5d0008]' : 'text-gray-800'
                     }`}>
                       {faq.question}
                     </h3>
@@ -184,7 +184,7 @@ const SupportSection = () => {
                   }`}
                 >
                   <div className="px-6 pb-6 pt-2">
-                    <div className="bg-gray-50 rounded-lg p-4 border-l-4 border-[#2563eb]">
+                    <div className="bg-gray-50 rounded-lg p-4 border-l-4 border-[#5d0008]">
                       <p className="text-gray-700 leading-relaxed">
                         {faq.answer}
                       </p>
@@ -197,7 +197,7 @@ const SupportSection = () => {
         </div>
 
         {/* Nota final */}
-        <div className="mt-8 bg-gradient-to-r from-[#2563eb] to-[#1d4ed8] rounded-xl p-6 text-white text-center">
+        <div className="mt-8 bg-gradient-to-r from-[#5d0008] to-[#70000a] rounded-xl p-6 text-white text-center">
           <p className="text-lg">
             ¿No encuentras la respuesta que buscas?
           </p>
@@ -205,8 +205,8 @@ const SupportSection = () => {
             No dudes en contactar con nuestro equipo de soporte. Estamos aquí para ayudarte.
           </p>
           <a
-            href="mailto:support@eduhubrpg.com"
-            className="inline-block mt-4 px-6 py-3 bg-white text-[#2563eb] font-semibold rounded-lg hover:bg-gray-100 transition-colors"
+            href="mailto:sistemas@fundacionsanezequiel.org"
+            className="inline-block mt-4 px-6 py-3 bg-white text-[#5d0008] font-semibold rounded-lg hover:bg-gray-100 transition-colors"
           >
             Contactar con soporte
           </a>

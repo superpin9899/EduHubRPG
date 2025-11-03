@@ -177,7 +177,7 @@ export default function Badges({ userData, onBack }: BadgesProps) {
       }}>
         {/* Header */}
         <div style={{
-          background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+          background: 'linear-gradient(135deg, #5d0008 0%, #70000a 100%)',
           padding: '20px',
           borderBottom: '4px solid #333',
           display: 'flex',
@@ -375,7 +375,7 @@ export default function Badges({ userData, onBack }: BadgesProps) {
                 </div>
                 <div>
                   <div style={{ color: '#666', marginBottom: '4px' }}>Desbloqueados</div>
-                  <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#2563eb' }}>
+                  <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#5d0008' }}>
                     {badges.filter(b => b.unlocked).length}
                   </div>
                 </div>
@@ -387,7 +387,7 @@ export default function Badges({ userData, onBack }: BadgesProps) {
                 </div>
                 <div>
                   <div style={{ color: '#666', marginBottom: '4px' }}>Progreso</div>
-                  <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#2563eb' }}>
+                  <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#5d0008' }}>
                     {Math.round((badges.filter(b => b.unlocked).length / badges.length) * 100)}%
                   </div>
                 </div>
