@@ -41,32 +41,25 @@ export const handler: Handler = async (event) => {
       updateData.is_active = false;
     }
 
-    // Intentar hacer PATCH primero (si existe, actualiza)
-    const patchResponse = await fetch(
-      `${SUPABASE_URL}/rest/v1/dungeon_progress?user_id=eq.${userId}`,
+    console.log('📤 Intentando guardar progreso:', { userId, updateData });
+
+    // Verificar si existe
+    const checkResponse = await fetch(
+      `${SUPABASE_URL}/rest/v1/dungeon_progress?user_id=eq.${userId}&select=id`,
       {
-        method: 'PATCH',
         headers: {
           'apikey': SUPABASE_SERVICE_KEY,
           'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
-          'Content-Type': 'application/json',
         },
-        body: JSON.stringify(updateData),
       }
     );
 
-    // Si PATCH funciona, devolver resultado
-    if (patchResponse.ok) {
-      const patchData = await patchResponse.json().catch(() => []);
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify(patchData),
-      };
-    }
+    const exists = checkResponse.ok && (await checkResponse.json()).length > 0;
+    console.log(`📊 Usuario ${userId} ${exists ? 'tiene' : 'NO tiene'} run existente`);
 
-    // Si PATCH falla porque no existe (404), hacer INSERT con POST
-    if (patchResponse.status === 404) {
+    // Si no existe, INSERT (POST)
+    if (!exists) {
+      console.log('📝 Creando nueva run con POST');
       const postResponse = await fetch(
         `${SUPABASE_URL}/rest/v1/dungeon_progress`,
         {
@@ -93,21 +86,48 @@ export const handler: Handler = async (event) => {
         };
       }
 
-      const postData = await postResponse.json().catch(() => []);
+      console.log('✅ POST exitoso');
+      const postData = await postResponse.json().catch(() => null);
+      console.log('📦 Datos devueltos por POST:', postData);
       return {
         statusCode: 200,
         headers,
-        body: JSON.stringify(postData),
+        body: JSON.stringify(postData || { success: true }),
       };
     }
 
-    // Si PATCH falla por otro motivo, devolver error
-    const errorText = await patchResponse.text();
-    console.error(`❌ Error PATCH: ${patchResponse.status}`, errorText);
+    // Si existe, UPDATE (PATCH)
+    console.log('📝 Actualizando run existente con PATCH');
+    const patchResponse = await fetch(
+      `${SUPABASE_URL}/rest/v1/dungeon_progress?user_id=eq.${userId}`,
+      {
+        method: 'PATCH',
+        headers: {
+          'apikey': SUPABASE_SERVICE_KEY,
+          'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updateData),
+      }
+    );
+
+    if (!patchResponse.ok) {
+      const errorText = await patchResponse.text();
+      console.error(`❌ Error PATCH: ${patchResponse.status}`, errorText);
+      return {
+        statusCode: patchResponse.status,
+        headers,
+        body: JSON.stringify({ error: errorText }),
+      };
+    }
+
+    console.log('✅ PATCH exitoso');
+    const patchData = await patchResponse.json().catch(() => null);
+    console.log('📦 Datos devueltos por PATCH:', patchData);
     return {
-      statusCode: patchResponse.status,
+      statusCode: 200,
       headers,
-      body: JSON.stringify({ error: errorText }),
+      body: JSON.stringify(patchData || { success: true }),
     };
   } catch (error: any) {
     console.error('❌ Error en updateDungeonProgress:', error);
