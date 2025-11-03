@@ -189,12 +189,6 @@ function Band({ maxSpeed = 50, minSpeed = 0, cardType = 'courses', onRelease }: 
     [0, 1.5, 0]
   ]);
 
-  useEffect(() => {
-    if (hovered) {
-      document.body.style.cursor = dragged ? 'grabbing' : 'grab';
-      return () => void (document.body.style.cursor = 'auto');
-    }
-  }, [hovered, dragged]);
 
   useEffect(() => {
     const handleResize = () => {

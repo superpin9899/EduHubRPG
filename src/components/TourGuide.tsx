@@ -1,88 +1,67 @@
 import { useState, useEffect } from 'react'
-import { X, ArrowRight, ArrowLeft } from 'lucide-react'
+import { X, ArrowRight, ArrowLeft, BookOpen, Trophy, HelpCircle, Headphones, TrendingUp, Award } from 'lucide-react'
 
 interface TourStep {
   id: string
   title: string
   description: string
-  position?: 'top' | 'bottom' | 'left' | 'right'
-  target?: string // Selector CSS del elemento a resaltar
+  icon: React.ReactNode
 }
 
 const TOUR_STEPS: TourStep[] = [
   {
     id: 'welcome',
     title: '¡Bienvenido a la Plataforma de Formación!',
-    description: 'Estás en el centro de aprendizaje de la Fundación San Ezequiel Moreno. Este tour te mostrará las principales funcionalidades.',
-    position: 'bottom'
+    description: 'Estás en el centro de aprendizaje de la Fundación San Ezequiel Moreno. Esta plataforma combina formación continua con gamificación para hacer tu aprendizaje más efectivo y entretenido.',
+    icon: <Trophy size={40} />
+  },
+  {
+    id: 'interactive',
+    title: 'Tarjetas Interactivas',
+    description: '¿Ves las tarjetas con lanyards? Son totalmente interactivas. Arrástralas hacia abajo para acceder a diferentes secciones de la plataforma. Cada una te lleva a un área diferente.',
+    icon: <TrendingUp size={40} />
   },
   {
     id: 'courses',
-    title: 'Explora los Cursos',
-    description: 'Accede a la lista completa de cursos disponibles. Aquí encontrarás todo el contenido formativo de la Fundación para tu desarrollo profesional.',
-    position: 'left',
-    target: '.lanyard-wrapper'
+    title: 'Cursos y Materiales',
+    description: 'Explora nuestra biblioteca completa de cursos. Desde habilidades básicas hasta formación avanzada, todo organizado para que puedas aprender a tu ritmo y según tus necesidades.',
+    icon: <BookOpen size={40} />
   },
   {
-    id: 'howitworks',
-    title: 'Cómo Funciona',
-    description: 'Descubre cómo utilizar la plataforma de forma eficiente con explicaciones detalladas y ejemplos prácticos paso a paso.',
-    position: 'left',
-    target: '.lanyard-wrapper'
+    id: 'tutorial',
+    title: 'Guías y Tutoriales',
+    description: '¿No estás seguro cómo usar una función? Accede a nuestros tutoriales paso a paso que te guiarán por toda la plataforma de forma clara y sencilla.',
+    icon: <HelpCircle size={40} />
   },
   {
     id: 'support',
-    title: 'Centro de Soporte',
-    description: '¿Necesitas ayuda? Accede al centro de soporte con preguntas frecuentes y contacto directo con nuestro equipo técnico.',
-    position: 'right',
-    target: '.lanyard-wrapper'
+    title: 'Soporte Técnico',
+    description: '¿Necesitas ayuda? Nuestro equipo está disponible para resolver tus dudas. Accede al centro de soporte con preguntas frecuentes y contacto directo.',
+    icon: <Headphones size={40} />
   },
   {
     id: 'gamification',
     title: 'Sistema de Gamificación',
-    description: 'Gana experiencia, sube de nivel y desbloquea logros mientras aprendes. ¡Haz del aprendizaje un juego!',
-    position: 'top',
-    target: '[data-tour="gamification"]'
+    description: 'Gana experiencia completando cursos, sube de nivel y desbloquea logros únicos. Visualiza tu progreso en el ranking y compite sanamente con otros estudiantes.',
+    icon: <Award size={40} />
   }
 ]
 
 const TourGuide = () => {
   const [currentStep, setCurrentStep] = useState(0)
-  const [targetElement, setTargetElement] = useState<HTMLElement | null>(null)
 
   useEffect(() => {
-    const step = TOUR_STEPS[currentStep]
-    // Delay para asegurar que el DOM esté actualizado
-    const timer = setTimeout(() => {
-      if (step?.target) {
-        let element: HTMLElement | null = null
-        
-        // Si el target es .lanyard-wrapper, seleccionar por índice
-        if (step.target === '.lanyard-wrapper') {
-          const elements = document.querySelectorAll(step.target) as NodeListOf<HTMLElement>
-          // Paso 1 (welcome): no tiene target
-          // Paso 2 (courses): índice 0
-          // Paso 3 (howitworks): índice 1  
-          // Paso 4 (support): índice 2
-          const cardIndex = currentStep - 1 // Restamos 1 porque el paso 0 no tiene target
-          element = elements[cardIndex] || null
-        } else {
-          element = document.querySelector(step.target) as HTMLElement
-        }
-        
-        setTargetElement(element)
-        
-        // Scrollear al elemento objetivo (instantáneo porque el scroll está bloqueado)
-        if (element) {
-          element.scrollIntoView({ behavior: 'auto', block: 'center' })
-        }
-      } else {
-        setTargetElement(null)
-      }
-    }, 100)
-    
-    return () => clearTimeout(timer)
-  }, [currentStep])
+    const html = document.documentElement
+    const body = document.body
+
+    html.style.overflow = 'hidden'
+    body.style.overflow = 'hidden'
+
+    return () => {
+      html.style.overflow = ''
+      body.style.overflow = ''
+    }
+  }, [])
 
   const handleNext = () => {
     if (currentStep < TOUR_STEPS.length - 1) {
@@ -99,296 +78,178 @@ const TourGuide = () => {
   }
 
   const handleComplete = () => {
-    // Marcar el tour como completado en localStorage
     localStorage.setItem('tour_completed', 'true')
-    
-    // Desbloquear scroll inmediatamente
-    const root = document.getElementById('root')
-    const html = document.documentElement
-    html.style.overflowX = 'clip'
-    html.style.overflowY = 'auto'
-    document.body.style.overflow = 'visible'
-    if (root) {
-      root.style.overflow = 'unset'
-    }
-    
-    // Hacer scroll al inicio
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-    
-    // Recargar para ocultar el tour
     window.location.reload()
   }
 
   const currentStepData = TOUR_STEPS[currentStep]
 
-  // Calcular posición del tooltip - Simplificado a posición fija
-  const getTooltipStyle = () => {
-    return {
-      bottom: '40px',
-      left: '50%',
-      transform: 'translateX(-50%)',
-      position: 'fixed' as const
-    }
-  }
-
-  // Bloquear scroll del html, body y root
-  useEffect(() => {
-    const root = document.getElementById('root')
-    const html = document.documentElement
-    
-    html.style.overflowX = 'hidden'
-    html.style.overflowY = 'hidden'
-    document.body.style.overflow = 'hidden'
-    if (root) {
-      root.style.overflow = 'hidden'
-    }
-
-    // Prevenir scroll con wheel
-    const preventScroll = (e: WheelEvent) => {
-      e.preventDefault()
-      e.stopPropagation()
-    }
-
-    // Prevenir scroll con touch
-    const preventTouch = (e: TouchEvent) => {
-      e.preventDefault()
-      e.stopPropagation()
-    }
-
-    window.addEventListener('wheel', preventScroll, { passive: false })
-    window.addEventListener('touchmove', preventTouch, { passive: false })
-
-    return () => {
-      // Restaurar valores originales del CSS
-      html.style.overflowX = 'clip'
-      html.style.overflowY = 'auto'
-      document.body.style.overflow = 'visible'
-      if (root) {
-        root.style.overflow = 'unset'
-      }
-      window.removeEventListener('wheel', preventScroll)
-      window.removeEventListener('touchmove', preventTouch)
-    }
-  }, [])
-
   return (
-    <>
-      {/* Overlay oscuro con recorte en el elemento objetivo */}
+    <div style={{
+      position: 'fixed',
+      inset: 0,
+      zIndex: 9999,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: 'rgba(0, 0, 0, 0.8)',
+      backdropFilter: 'blur(4px)'
+    }}>
       <div style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        width: '100%',
-        height: '100%',
-        zIndex: 9998,
-        pointerEvents: 'auto'
-      }}>
-        {targetElement && (() => {
-          const rect = targetElement.getBoundingClientRect()
-          const padding = 5
-          return (
-            <>
-              {/* Overlay en 4 partes para crear el recorte */}
-              {/* Top overlay */}
-              <div style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: rect.top - padding,
-                backgroundColor: 'rgba(0, 0, 0, 0.75)',
-                pointerEvents: 'auto',
-                animation: 'fadeInOverlay 0.3s ease-in-out 0s'
-              }} />
-              {/* Bottom overlay */}
-              <div style={{
-                position: 'absolute',
-                top: rect.bottom + padding,
-                left: 0,
-                width: '100%',
-                height: `calc(100% - ${rect.bottom + padding}px)`,
-                backgroundColor: 'rgba(0, 0, 0, 0.75)',
-                pointerEvents: 'auto',
-                animation: 'fadeInOverlay 0.3s ease-in-out 0.05s'
-              }} />
-              {/* Left overlay */}
-              <div style={{
-                position: 'absolute',
-                top: rect.top - padding,
-                left: 0,
-                width: rect.left - padding,
-                height: rect.height + (padding * 2),
-                backgroundColor: 'rgba(0, 0, 0, 0.75)',
-                pointerEvents: 'auto',
-                animation: 'fadeInOverlay 0.3s ease-in-out 0.1s'
-              }} />
-              {/* Right overlay */}
-              <div style={{
-                position: 'absolute',
-                top: rect.top - padding,
-                left: rect.right + padding,
-                width: `calc(100% - ${rect.right + padding}px)`,
-                height: rect.height + (padding * 2),
-                backgroundColor: 'rgba(0, 0, 0, 0.75)',
-                pointerEvents: 'auto',
-                animation: 'fadeInOverlay 0.3s ease-in-out 0.15s'
-              }} />
-              {/* Borde del elemento objetivo */}
-              <div style={{
-                position: 'absolute',
-                top: rect.top - padding,
-                left: rect.left - padding,
-                width: rect.width + (padding * 2),
-                height: rect.height + (padding * 2),
-                border: '3px solid #5d0008',
-                borderRadius: '12px',
-                pointerEvents: 'none',
-                animation: 'fadeInBorder 0.4s ease-in-out 0.2s'
-              }} />
-            </>
-          )
-        })()}
-      </div>
-
-      {/* Tooltip del tour */}
-      <div style={{
-        ...getTooltipStyle(),
-        zIndex: 9999,
-        minWidth: '320px',
-        maxWidth: '400px',
         backgroundColor: 'white',
-        borderRadius: '16px',
-        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
-        padding: '0',
-        pointerEvents: 'auto'
+        borderRadius: '20px',
+        boxShadow: '0 25px 50px rgba(0, 0, 0, 0.5)',
+        maxWidth: '500px',
+        width: '90%',
+        overflow: 'hidden'
       }}>
+        {/* Header */}
         <div style={{
           background: 'linear-gradient(135deg, #5d0008 0%, #70000a 100%)',
-          padding: '20px',
-          borderTopLeftRadius: '16px',
-          borderTopRightRadius: '16px'
+          padding: '30px 30px 20px',
+          position: 'relative'
         }}>
+          <button
+            onClick={handleComplete}
+            style={{
+              position: 'absolute',
+              top: '20px',
+              right: '20px',
+              background: 'rgba(255, 255, 255, 0.2)',
+              border: 'none',
+              borderRadius: '50%',
+              width: '32px',
+              height: '32px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              transition: 'background 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.3)'}
+            onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)'}
+          >
+            <X size={18} color="white" />
+          </button>
+
           <div style={{
             display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'flex-start',
-            marginBottom: '12px'
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '16px',
+            marginTop: '20px'
           }}>
-            <h3 style={{
-              fontSize: '18px',
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.2)',
+              borderRadius: '20px',
+              padding: '16px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              {currentStepData.icon}
+            </div>
+            <h2 style={{
+              fontSize: '24px',
               fontWeight: 'bold',
               color: 'white',
               margin: 0,
-              paddingRight: '20px'
+              textAlign: 'center'
             }}>
               {currentStepData.title}
-            </h3>
-            <button
-              onClick={handleComplete}
-              style={{
-                background: 'rgba(255, 255, 255, 0.2)',
-                border: 'none',
-                borderRadius: '50%',
-                width: '28px',
-                height: '28px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.3)'}
-              onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)'}
-            >
-              <X size={16} color="white" />
-            </button>
+            </h2>
           </div>
+        </div>
+
+        {/* Content */}
+        <div style={{
+          padding: '30px',
+          textAlign: 'center'
+        }}>
           <p style={{
-            fontSize: '14px',
-            color: 'rgba(255, 255, 255, 0.9)',
-            margin: 0,
-            lineHeight: '1.6'
+            fontSize: '16px',
+            color: '#374151',
+            lineHeight: '1.6',
+            margin: 0
           }}>
             {currentStepData.description}
           </p>
         </div>
 
+        {/* Navigation */}
         <div style={{
-          padding: '20px',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          gap: '12px',
-          borderTop: '1px solid #e5e7eb'
+          padding: '20px 30px',
+          borderTop: '1px solid #e5e7eb',
+          gap: '12px'
         }}>
           <button
             onClick={handleComplete}
             style={{
               padding: '10px 20px',
               background: 'transparent',
-              border: '2px solid #5d0008',
+              border: '2px solid #d1d5db',
               borderRadius: '8px',
-              color: '#5d0008',
+              color: '#6b7280',
               fontWeight: '600',
               cursor: 'pointer',
-              transition: 'all 0.2s ease',
+              transition: 'all 0.2s',
               fontSize: '14px'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = '#5d0008'
-              e.currentTarget.style.color = 'white'
+              e.currentTarget.style.borderColor = '#9ca3af'
+              e.currentTarget.style.color = '#374151'
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'transparent'
-              e.currentTarget.style.color = '#5d0008'
+              e.currentTarget.style.borderColor = '#d1d5db'
+              e.currentTarget.style.color = '#6b7280'
             }}
           >
             Saltar
           </button>
 
-          <div style={{ display: 'flex', gap: '8px' }}>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             {currentStep > 0 && (
               <button
                 onClick={handlePrevious}
                 style={{
-                  padding: '10px 16px',
+                  padding: '10px 20px',
                   background: '#f3f4f6',
-                  border: '2px solid #e5e7eb',
+                  border: 'none',
                   borderRadius: '8px',
                   color: '#374151',
                   fontWeight: '600',
                   cursor: 'pointer',
-                  transition: 'all 0.2s ease',
+                  transition: 'all 0.2s',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '4px',
+                  gap: '6px',
                   fontSize: '14px'
                 }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = '#e5e7eb'
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = '#f3f4f6'
-                }}
+                onMouseEnter={(e) => e.currentTarget.style.background = '#e5e7eb'}
+                onMouseLeave={(e) => e.currentTarget.style.background = '#f3f4f6'}
               >
                 <ArrowLeft size={16} />
                 Anterior
               </button>
             )}
+
             <button
               onClick={handleNext}
               style={{
-                padding: '10px 20px',
+                padding: '10px 24px',
                 background: 'linear-gradient(135deg, #5d0008 0%, #70000a 100%)',
                 border: 'none',
                 borderRadius: '8px',
                 color: 'white',
                 fontWeight: '600',
                 cursor: 'pointer',
-                transition: 'all 0.2s ease',
+                transition: 'all 0.2s',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '4px',
+                gap: '6px',
                 fontSize: '14px',
                 boxShadow: '0 4px 12px rgba(93, 0, 8, 0.3)'
               }}
@@ -401,39 +262,36 @@ const TourGuide = () => {
                 e.currentTarget.style.boxShadow = '0 4px 12px rgba(93, 0, 8, 0.3)'
               }}
             >
-              {currentStep === TOUR_STEPS.length - 1 ? 'Finalizar' : 'Siguiente'}
+              {currentStep === TOUR_STEPS.length - 1 ? 'Empezar' : 'Siguiente'}
               {currentStep < TOUR_STEPS.length - 1 && <ArrowRight size={16} />}
             </button>
           </div>
         </div>
 
-        {/* Indicador de progreso */}
+        {/* Progress dots */}
         <div style={{
           display: 'flex',
-          gap: '6px',
+          gap: '8px',
           justifyContent: 'center',
-          padding: '12px 20px',
-          borderTop: '1px solid #e5e7eb',
-          backgroundColor: '#f9fafb'
+          padding: '12px',
+          background: '#f9fafb'
         }}>
           {TOUR_STEPS.map((_, index) => (
             <div
               key={index}
               style={{
-                width: '8px',
-                height: '8px',
+                width: '10px',
+                height: '10px',
                 borderRadius: '50%',
-                backgroundColor: index === currentStep ? '#5d0008' : '#d1d5db',
-                transition: 'all 0.3s ease'
+                background: index === currentStep ? '#5d0008' : '#d1d5db',
+                transition: 'all 0.3s'
               }}
             />
           ))}
         </div>
       </div>
-    </>
+    </div>
   )
 }
 
 export default TourGuide
-
-
