@@ -90,6 +90,7 @@ export default function Dungeons({ userData, onBack }: DungeonsProps) {
   
   // Ref para acceder al valor actual de isPlayerTurn sin closures
   const isPlayerTurnRef = useRef(true);
+  const isInCombatRef = useRef(false);
   
   // URLs de funciones serverless
   const API_BASE = import.meta.env.VITE_NETLIFY_SITE_URL 
@@ -211,10 +212,14 @@ export default function Dungeons({ userData, onBack }: DungeonsProps) {
 
   const [selectedEnemy, setSelectedEnemy] = useState<Enemy | null>(null);
 
-  // Sincronizar ref con state
+  // Sincronizar refs con states
   useEffect(() => {
     isPlayerTurnRef.current = isPlayerTurn;
   }, [isPlayerTurn]);
+  
+  useEffect(() => {
+    isInCombatRef.current = isInCombat;
+  }, [isInCombat]);
 
   const getHpPercentage = (current: number, max: number) => {
     return Math.max(0, (current / max) * 100);
@@ -225,6 +230,7 @@ export default function Dungeons({ userData, onBack }: DungeonsProps) {
     if (!currentEnemy || isInCombat) return;
     
     console.log('🟡 handleStartCombat INICIANDO');
+    isInCombatRef.current = true;
     setIsInCombat(true);
     setCombatLog([`⚔️ ¡Combate iniciado contra ${currentEnemy.name}!`]);
     
@@ -293,8 +299,8 @@ export default function Dungeons({ userData, onBack }: DungeonsProps) {
 
   // Ataque del enemigo
   const handleEnemyAttack = () => {
-    console.log('🔴 handleEnemyAttack llamado', { isPlayerTurnRef: isPlayerTurnRef.current, hasEnemy: !!currentEnemy, isInCombat });
-    if (!currentEnemy || !isInCombat) {
+    console.log('🔴 handleEnemyAttack llamado', { isInCombatRef: isInCombatRef.current, hasEnemy: !!currentEnemy });
+    if (!currentEnemy || !isInCombatRef.current) {
       console.log('🔴 handleEnemyAttack ABORTADO - sin enemigo o combate');
       return;
     }
@@ -333,6 +339,8 @@ export default function Dungeons({ userData, onBack }: DungeonsProps) {
     setCombatLog(prev => [...prev, 
       `🎉 ¡Victoria! Ganas ${expGained} EXP`
     ]);
+    isInCombatRef.current = false;
+    isPlayerTurnRef.current = true;
     setIsInCombat(false);
     setIsPlayerTurn(true);
     // TODO: Generar nuevo monstruo o avanzar piso
@@ -341,6 +349,8 @@ export default function Dungeons({ userData, onBack }: DungeonsProps) {
   // Game Over
   const handleGameOver = () => {
     setCombatLog(prev => [...prev, '💀 GAME OVER - Has sido derrotado']);
+    isInCombatRef.current = false;
+    isPlayerTurnRef.current = true;
     setIsInCombat(false);
     setIsPlayerTurn(true);
     // TODO: Resetear HP y volver al inicio o mostrar pantalla de game over
